@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Senior Advising Services LLC</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <style>
   
   :root {
@@ -787,6 +788,10 @@
                 <span class="step-label">Step 2 of 2</span>
               </div>
             </div>
+            <div class="g-recaptcha" data-sitekey="6Lek8OgsAAAAAApg2q6JGK9t-UxIsrGK1tUCE8CC"></div>
+            <div style="display:none;" aria-hidden="true">
+            <input type="text" id="honeypot" name="website" tabindex="-1" autocomplete="off">
+            </div>
             <button class="btn-submit" onclick="submitForm()">Submit Inquiry &rarr;</button>
           </div>
         </div>
@@ -866,60 +871,106 @@
     <span>Southern California Senior Care Placement</span>
   </div>
 </footer>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <script>emailjs.init("LeUY0Ukv1UW5gmgBn");</script>
+
 <script>
+  emailjs.init("LeUY0Ukv1UW5gmgBn");
+
+  // Rate limit tracker
+  let lastSubmit = 0;
+
+  function sanitize(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
   function goToPage2() {
     var name = document.getElementById('contact-name').value.trim();
     var phone = document.getElementById('contact-phone').value.trim();
-    // var relationship = document.getElementById('relationship').value;
-    if (!name || !phone ) {
-      alert('Please fill in your name, phone number, and relationship to the senior.');
+    if (!name || !phone) {
+      alert('Please fill in your name and phone number.');
       return;
     }
     document.getElementById('form-page-1').classList.remove('active');
     document.getElementById('form-page-2').classList.add('active');
     document.getElementById('intake').scrollIntoView({ behavior: 'smooth' });
   }
- 
+
   function goToPage1() {
     document.getElementById('form-page-2').classList.remove('active');
     document.getElementById('form-page-1').classList.add('active');
     document.getElementById('intake').scrollIntoView({ behavior: 'smooth' });
   }
- 
+
   function submitForm() {
-  // Gather checkbox values
-  const careTypes = [...document.querySelectorAll('input[name="care-type"]:checked')].map(el => el.value).join(', ');
-  const needs = [...document.querySelectorAll('input[name="needs"]:checked')].map(el => el.value).join(', ');
-  const budget = document.querySelector('input[name="budget"]:checked')?.value || 'Not specified';
 
-  const templateParams = {
-    contact_name:    document.getElementById('contact-name').value,
-    contact_phone:   document.getElementById('contact-phone').value,
-    contact_email:   document.getElementById('contact-email').value,
-    relationship:    document.getElementById('relationship').value,
-    senior_name:     document.getElementById('senior-name').value,
-    senior_age:      document.getElementById('senior-age').value,
-    city:            document.getElementById('city').value,
-    timeline:        document.getElementById('timeline').value,
-    care_types:      careTypes || 'None selected',
-    needs:           needs || 'None selected',
-    budget:          budget,
-    notes:           document.getElementById('notes').value,
-  };
+    // 1. Honeypot check - if filled in it's a bot
+    if (document.getElementById('honeypot').value !== '') {
+      return;
+    }
 
-  emailjs.send("service_9drws39", "template_2ro70qd", templateParams)
-    .then(function() {
-      document.getElementById('intake-form').style.display = 'none';
-      document.getElementById('form-success').classList.add('show');
-    })
-    .catch(function(error) {
-      alert('Something went wrong. Please call Erin directly at (949) 573-8419.');
-      console.error('EmailJS error:', error);
-    });
-}
- 
+    // 2. Rate limit check - 60 second cooldown
+    const now = Date.now();
+    if (now - lastSubmit < 60000) {
+      alert('Please wait a moment before submitting again.');
+      return;
+    }
+
+    // 3. Turnstile check - must pass captcha
+    const recaptchaResponse = grecaptcha.getResponse();
+    if (!recaptchaResponse) { 
+       alert('Please complete the security check.');
+       return;
+    }
+
+    // 4. Email validation
+    const email = document.getElementById('contact-email').value.trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+
+    // 5. Phone validation
+    const phone = document.getElementById('contact-phone').value.trim();
+    if (!/^[\d\s\-\(\)\+]{7,15}$/.test(phone)) {
+      alert('Please enter a valid phone number.');
+      return;
+    }
+
+    const careTypes = [...document.querySelectorAll('input[name="care-type"]:checked')].map(el => el.value).join(', ');
+    const needs = [...document.querySelectorAll('input[name="needs"]:checked')].map(el => el.value).join(', ');
+    const budget = document.querySelector('input[name="budget"]:checked')?.value || 'Not specified';
+
+    const templateParams = {
+      contact_name:  sanitize(document.getElementById('contact-name').value),
+      contact_phone: sanitize(phone),
+      contact_email: sanitize(email),
+      relationship:  sanitize(document.getElementById('relationship').value),
+      senior_name:   sanitize(document.getElementById('senior-name').value),
+      senior_age:    sanitize(document.getElementById('senior-age').value),
+      city:          sanitize(document.getElementById('city').value),
+      timeline:      sanitize(document.getElementById('timeline').value),
+      care_types:    careTypes || 'None selected',
+      needs:         needs || 'None selected',
+      budget:        budget,
+      notes:         sanitize(document.getElementById('notes').value),
+    };
+
+    lastSubmit = now;
+
+    emailjs.send("service_9drws39", "template_2ro70qd", templateParams)
+      .then(function() {
+        document.getElementById('intake-form').style.display = 'none';
+        document.getElementById('form-success').classList.add('show');
+      })
+      .catch(function(error) {
+        alert('Something went wrong. Please call Erin directly at (949) 573-8419.');
+        console.error('EmailJS error:', error);
+      });
+  }
+
   document.querySelectorAll('a[href^="#"]').forEach(function(a) {
     a.addEventListener('click', function(e) {
       var target = document.querySelector(a.getAttribute('href'));
