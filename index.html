@@ -608,7 +608,7 @@
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-title">Free Consultation</div>
-      <p class="step-desc">Erin listens to your family's situation, needs, preferences, and budget. There is zero pressure and complete confidentiality.</p>
+      <p class="step-desc">We listen to your family's situation, needs, preferences, and budget. There is zero pressure and complete confidentiality.</p>
     </div>
     <div class="step">
       <div class="step-num">2</div>
@@ -890,8 +890,14 @@
   // Wait for both EmailJS and reCAPTCHA to be ready
   console.log('Scripts loading...');
   
-  emailjs.init("LeUY0Ukv1UW5gmgBn");
-  console.log('EmailJS initialized');
+  window.addEventListener('load', function() {
+  if (window.emailjs) {
+    emailjs.init("LeUY0Ukv1UW5gmgBn");
+    console.log('EmailJS initialized');
+  } else {
+    console.error('EmailJS failed to load');
+  }
+});
 
   // Check if reCAPTCHA loaded
   window.addEventListener('load', function() {
