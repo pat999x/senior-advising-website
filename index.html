@@ -885,6 +885,9 @@
 <script>emailjs.init("LeUY0Ukv1UW5gmgBn");</script>
 
 <script>
+  // Rate limit tracker - MUST be at top
+  let lastSubmit = 0;
+
   // Wait for both EmailJS and reCAPTCHA to be ready
   console.log('Scripts loading...');
   
@@ -900,9 +903,6 @@
       console.warn('reCAPTCHA not found - may not have loaded');
     }
   });
-
-  // Rate limit tracker
-  let lastSubmit = 0;
 
   function sanitize(str) {
     const div = document.createElement('div');
