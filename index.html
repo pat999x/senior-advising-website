@@ -354,6 +354,12 @@
     color: var(--sage-dark); margin-bottom: 10px;
   }
   .form-success p { color: var(--charcoal-mid); font-size: 0.95rem; line-height: 1.7; }
+
+  /* RECAPTCHA */
+  .g-recaptcha {
+    display: inline-block;
+    margin: 0 auto;
+  }
   /* ABOUT */
 .about-owner {
   position: absolute;
@@ -779,6 +785,13 @@
             <label class="form-label" for="notes">Anything Else We Should Know?</label>
             <textarea class="form-textarea" id="notes" placeholder="Special considerations, cultural preferences, preferred location within SoCal, pets, dietary needs, etc."></textarea>
           </div>
+
+          <div style="grid-column: 1 / -1; display: flex; justify-content: center; margin-top: 24px; margin-bottom: 12px;">
+            <div class="g-recaptcha" data-sitekey="6Lcd8-gsAAAAAGmmCdzDn8rd1j_x3JqjZNbwb4qH"></div>
+          </div>
+          <div style="display:none;" aria-hidden="true">
+            <input type="text" id="honeypot" name="website" tabindex="-1" autocomplete="off">
+          </div>
  
           <div class="form-nav-row">
             <div style="display:flex;align-items:center;gap:16px;">
@@ -788,10 +801,6 @@
                 <div class="step-dot active"></div>
                 <span class="step-label">Step 2 of 2</span>
               </div>
-            </div>
-            <div class="g-recaptcha" data-sitekey="6Lcd8-gsAAAAAGmmCdzDn8rd1j_x3JqjZNbwb4qH"></div>
-            <div style="display:none;" aria-hidden="true">
-            <input type="text" id="honeypot" name="website" tabindex="-1" autocomplete="off">
             </div>
             <button class="btn-submit" onclick="submitForm()">Submit Inquiry &rarr;</button>
           </div>
