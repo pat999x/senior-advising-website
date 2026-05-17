@@ -885,7 +885,21 @@
 <script>emailjs.init("LeUY0Ukv1UW5gmgBn");</script>
 
 <script>
+  // Wait for both EmailJS and reCAPTCHA to be ready
+  console.log('Scripts loading...');
+  
   emailjs.init("LeUY0Ukv1UW5gmgBn");
+  console.log('EmailJS initialized');
+
+  // Check if reCAPTCHA loaded
+  window.addEventListener('load', function() {
+    console.log('Page fully loaded');
+    if (window.grecaptcha) {
+      console.log('reCAPTCHA is available');
+    } else {
+      console.warn('reCAPTCHA not found - may not have loaded');
+    }
+  });
 
   // Rate limit tracker
   let lastSubmit = 0;
@@ -915,9 +929,11 @@
   }
 
   function submitForm() {
+    console.log('Submit button clicked');
 
     // 1. Honeypot check - if filled in it's a bot
     if (document.getElementById('honeypot').value !== '') {
+      console.log('Honeypot filled - blocking submission');
       return;
     }
 
@@ -928,10 +944,14 @@
       return;
     }
 
-    // 3. Turnstile check - must pass captcha
+    // 3. reCAPTCHA check - must pass captcha
+    console.log('Checking reCAPTCHA response...');
     const recaptchaResponse = grecaptcha.getResponse();
+    console.log('reCAPTCHA response:', recaptchaResponse);
+    
     if (!recaptchaResponse) { 
-       alert('Please complete the security check.');
+       alert('Please complete the security check (reCAPTCHA).');
+       console.log('reCAPTCHA not completed');
        return;
     }
 
@@ -970,14 +990,17 @@
 
     lastSubmit = now;
 
+    console.log('Sending form data via EmailJS...');
     emailjs.send("service_9drws39", "template_2ro70qd", templateParams)
       .then(function() {
+        console.log('Form submitted successfully');
         document.getElementById('intake-form').style.display = 'none';
         document.getElementById('form-success').classList.add('show');
+        document.getElementById('intake').scrollIntoView({ behavior: 'smooth' });
       })
       .catch(function(error) {
-        alert('Something went wrong. Please call Erin directly at (949) 573-8419.');
         console.error('EmailJS error:', error);
+        alert('Something went wrong. Please call Erin directly at (949) 573-8419.\n\nError: ' + error.message);
       });
   }
 
